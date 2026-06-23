@@ -224,6 +224,12 @@ KANBAN_GUIDANCE = (
     "reviewer can approve+unblock or request changes. Reviewing-then-"
     "completing is more honest than auto-completing work that still needs "
     "eyes on it.\n"
+    "Exception for cleanup/trivial tasks: if the card body has no "
+    "`## Builder` section and the task is a cleanup/trivial operation "
+    "(deleting one-time files, simple commits, adding .gitignore, "
+    "renaming files, or similar mechanical maintenance), skip the "
+    "review gate and call `kanban_complete` directly. These tasks "
+    "do not need human review.\n"
     "6. **If follow-up work appears, create it; don't do it.** Use "
     "`kanban_create(title=..., assignee=<right-profile>, parents=[your-task-id])` "
     "to spawn a child task for the appropriate specialist profile instead of "
@@ -911,9 +917,9 @@ def _probe_remote_backend(env_type: str) -> str | None:
         # `2>/dev/null` so a missing binary doesn't pollute the output.
         probe_cmd = (
             "printf 'os=%s\\nkernel=%s\\nhome=%s\\ncwd=%s\\nuser=%s\\n' "
-            "\"$(uname -s 2>/dev/null || echo unknown)\" "
-            "\"$(uname -r 2>/dev/null || echo unknown)\" "
-            "\"$HOME\" \"$(pwd)\" \"$(whoami 2>/dev/null || id -un 2>/dev/null || echo unknown)\""
+            '"$(uname -s 2>/dev/null || echo unknown)" '
+            '"$(uname -r 2>/dev/null || echo unknown)" '
+            '"$HOME" "$(pwd)" "$(whoami 2>/dev/null || id -un 2>/dev/null || echo unknown)"'
         )
         result = env.execute(probe_cmd, timeout=4)
         if result.get("returncode") != 0:
@@ -1509,7 +1515,7 @@ def build_skills_system_prompt(
                     continue
                 rel = desc_file.relative_to(ext_dir)
                 cat = "/".join(rel.parts[:-1]) if len(rel.parts) > 1 else "general"
-                category_descriptions.setdefault(cat, str(cat_desc).strip().strip("'\""))
+                category_descriptions.setdefault(cat, str(cat_desc).strip().strip("'\"'"))
             except Exception as e:
                 logger.debug("Could not read external skill description %s: %s", desc_file, e)
 
